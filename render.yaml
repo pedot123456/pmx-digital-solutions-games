@@ -1,0 +1,30 @@
+# Render Blueprint (https://render.com/docs/blueprint-spec) – Render → New → Blueprint → pick this repository.
+# One web service runs everything: the pages, the API and the live game server (Socket.IO, server-side timing).
+# All data (players, games, leaderboards, feedback) is kept in PostgreSQL through DATABASE_URL.
+services:
+  - type: web
+    name: pmx-digital-solutions-games
+    runtime: node
+    region: singapore
+    # "free" sleeps after 15 minutes without visitors (the next visit then waits about a minute).
+    # Switch to "starter" (or higher) in the Render dashboard for event days.
+    plan: free
+    # Keep a single instance: live races are held in this server's memory.
+    numInstances: 1
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: LOG_LEVEL
+        value: warn
+      # PostgreSQL connection string, e.g. from Neon (region: Singapore):
+      #   postgresql://user:password@ep-xxxx-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require
+      # Required – the server will not start without it (Render's disk is wiped on every deploy).
+      - key: DATABASE_URL
+        sync: false
+      # Your own 6–12 digit first-login Admin PIN (not 1234). You choose a new PIN right after the first sign-in.
+      - key: ADMIN_DEFAULT_PIN
+        sync: false
